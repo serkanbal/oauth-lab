@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginBottom="15dp">
+
+    <TextView
+        android:id="@+id/text_tweets"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="Tweets here"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:textColor="@color/colorAccent"
+        android:id="@+id/text_timestamp"
+        android:gravity="right"
+        android:text="03.02.1988"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
