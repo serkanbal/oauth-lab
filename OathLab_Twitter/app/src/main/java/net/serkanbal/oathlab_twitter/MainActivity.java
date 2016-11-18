@@ -9,10 +9,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.google.gson.Gson;
+
 import org.apache.commons.codec.binary.Base64;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -97,16 +96,18 @@ public class MainActivity extends AppCompatActivity {
                 if (!response.isSuccessful()) {
                     throw new IOException("on Response " + response);
                 } else {
-                    try {
-                        JSONObject obj = new JSONObject(response.body().string());
-                        String bearerToken = obj.getString("access_token");
-                        Log.d("Access_Token", "Your Access Token is: " + bearerToken);
+                    String data = response.body().string();
 
-                        getTweets(bearerToken, mScreenName);
+                    Gson gson = new Gson();
+                    BearerToken bearer = gson.fromJson(data, BearerToken.class);
+                    String bearerToken = bearer.getBearerToken();
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+//                        JSONObject obj = new JSONObject(response.body().string());
+//                        String bearerToken = obj.getString("access_token");
+                    Log.d("Access_Token", "Your Access Token is: " + bearerToken);
+
+                    getTweets(bearerToken, mScreenName);
+
                 }
             }
         });
@@ -132,34 +133,42 @@ public class MainActivity extends AppCompatActivity {
                 if(!response.isSuccessful()) {
                     throw new IOException("Problem at getting tweets" + response);
                 } else {
-                    try {
-                        JSONArray rootArray = new JSONArray(response.body().string());
-                        mList.clear();
-                        for (int i = 0; i < rootArray.length(); i++) {
-                            JSONObject obj = rootArray.getJSONObject(i);
-                            String timestamp = obj.getString("created_at");
-                            String text = obj.getString("text");
-                            mList.add(new TwitterObject(timestamp, text));
-                        }
+                    Gson gson = new Gson();
+                    String str = response.body().string();
+                    TweetTextTimeStampObject[] array = gson.fromJson(str,
+                            TweetTextTimeStampObject[].class);
 
-                        MainActivity.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                RecyclerView recyclerview = (RecyclerView) findViewById(R.id.recyclerview);
-
-                                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this,
-                                        LinearLayoutManager.VERTICAL,false);
-
-                                recyclerview.setLayoutManager(linearLayoutManager);
-
-                                RecyclerView.Adapter adapter = new TwitterAdapter(mList);
-                                recyclerview.setAdapter(adapter);
-                                adapter.notifyDataSetChanged();
-                            }
-                        });
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    mList.clear();
+                    for (int i = 0; i < array.length; i++) {
+                        String timestamp = array[i].getCreated_at();
+                        String text = array[i].getText();
+                        mList.add(new TwitterObject(timestamp, text));
                     }
+
+//                        JSONArray rootArray = new JSONArray(response.body().string());
+//                        mList.clear();
+//                        for (int i = 0; i < rootArray.length(); i++) {
+//                            JSONObject obj = rootArray.getJSONObject(i);
+//                            String timestamp = obj.getString("created_at");
+//                            String text = obj.getString("text");
+//                            mList.add(new TwitterObject(timestamp, text));
+//                        }
+
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            RecyclerView recyclerview = (RecyclerView) findViewById(R.id.recyclerview);
+
+                            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this,
+                                    LinearLayoutManager.VERTICAL,false);
+
+                            recyclerview.setLayoutManager(linearLayoutManager);
+
+                            RecyclerView.Adapter adapter = new TwitterAdapter(mList);
+                            recyclerview.setAdapter(adapter);
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
                 }
             }
         });
